@@ -218,6 +218,43 @@ M.search_columns = {
         end,
     },
     {
+    title = 'Price Per\nItem:',
+    width = .08,
+    align = 'RIGHT',
+    fill = function(cell, record)
+        local price_per_item
+        if record.buyout_price > 0 then
+            price_per_item = ceil(record.buyout_price / record.aux_quantity)
+        elseif record.high_bidder then
+            price_per_item = ceil(record.high_bid / record.aux_quantity)
+        else
+            price_per_item = ceil(record.unit_bid_price)
+        end
+        cell.text:SetText(money.to_string(price_per_item, true))
+    end,
+    cmp = function(record_a, record_b, desc)
+        local price_a, price_b
+
+        if record_a.buyout_price > 0 then
+            price_a = record_a.buyout_price / record_a.aux_quantity
+        elseif record_a.high_bidder then
+            price_a = record_a.high_bid / record_a.aux_quantity
+        else
+            price_a = record_a.unit_bid_price
+        end
+
+        if record_b.buyout_price > 0 then
+            price_b = record_b.buyout_price / record_b.aux_quantity
+        elseif record_b.high_bidder then
+            price_b = record_b.high_bid / record_b.aux_quantity
+        else
+            price_b = record_b.unit_bid_price
+        end
+
+        return sort_util.compare(price_a, price_b, desc)
+    end,
+},
+    {
         title = 'Historical\nValue (%):',
         width = .08,
         align = 'CENTER',
@@ -229,6 +266,50 @@ M.search_columns = {
             local pct_a = record_percentage(record_a) or (desc and -aux.huge or aux.huge)
             local pct_b = record_percentage(record_b) or (desc and -aux.huge or aux.huge)
             return sort_util.compare(pct_a, pct_b, desc)
+        end,
+    },
+    {
+        title = 'Vendor\nDiff:',
+        width = .08,
+        align = 'RIGHT',
+        fill = function(cell, record)
+            local auction_price_per_item
+            if record.buyout_price > 0 then
+                auction_price_per_item = ceil(record.buyout_price / record.aux_quantity)
+            elseif record.high_bidder then
+                auction_price_per_item = ceil(record.high_bid / record.aux_quantity)
+            else
+                auction_price_per_item = ceil(record.unit_bid_price)
+            end
+
+            local vendor_sell_price = aux.account_data.merchant_sell[record.item_id or record.link] or 0
+
+            if vendor_sell_price == 0 then
+                cell.text:SetText('---')
+                return
+            end
+
+            local diff = vendor_sell_price - auction_price_per_item
+            local diff_color = (diff > 0) and aux.color.green or aux.color.red
+            cell.text:SetText(money.to_string(diff, true, false, diff_color))
+        end,
+        cmp = function(record_a, record_b, desc)
+            local function get_diff(record)
+                local auction_price
+                if record.buyout_price > 0 then
+                    auction_price = record.buyout_price / record.aux_quantity
+                elseif record.high_bidder then
+                    auction_price = record.high_bid / record.aux_quantity
+                else
+                    auction_price = record.unit_bid_price
+                end
+                local vendor_price = aux.account_data.merchant_sell[record.item_id or record.link] or 0
+                return vendor_price - auction_price
+            end
+
+            local diff_a = get_diff(record_a)
+            local diff_b = get_diff(record_b)
+            return sort_util.compare(diff_a, diff_b, desc)
         end,
     },
 }
