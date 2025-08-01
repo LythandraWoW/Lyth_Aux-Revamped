@@ -273,18 +273,18 @@ M.search_columns = {
         width = .08,
         align = 'RIGHT',
         fill = function(cell, record)
-            local auction_price_per_item
-            if record.buyout_price > 0 then
+            local auction_price_per_item = 0
+            if record.buyout_price and record.buyout_price > 0 then
                 auction_price_per_item = ceil(record.buyout_price / record.aux_quantity)
-            elseif record.high_bidder then
+            elseif record.high_bidder and record.high_bid then
                 auction_price_per_item = ceil(record.high_bid / record.aux_quantity)
-            else
+            elseif record.unit_bid_price then
                 auction_price_per_item = ceil(record.unit_bid_price)
             end
 
             local vendor_sell_price = aux.account_data.merchant_sell[record.item_id or record.link] or 0
-
-            if vendor_sell_price == 0 then
+            
+            if vendor_sell_price == 0 or auction_price_per_item == 0 then
                 cell.text:SetText('---')
                 return
             end
@@ -295,16 +295,17 @@ M.search_columns = {
         end,
         cmp = function(record_a, record_b, desc)
             local function get_diff(record)
-                local auction_price
-                if record.buyout_price > 0 then
+                local auction_price = 0
+                if record.buyout_price and record.buyout_price > 0 then
                     auction_price = record.buyout_price / record.aux_quantity
-                elseif record.high_bidder then
+                elseif record.high_bidder and record.high_bid then
                     auction_price = record.high_bid / record.aux_quantity
-                else
+                elseif record.unit_bid_price then
                     auction_price = record.unit_bid_price
                 end
+                
                 local vendor_price = aux.account_data.merchant_sell[record.item_id or record.link] or 0
-                return vendor_price - auction_price
+                return (vendor_price - auction_price)
             end
 
             local diff_a = get_diff(record_a)
