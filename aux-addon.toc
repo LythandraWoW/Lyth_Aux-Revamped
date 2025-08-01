@@ -1,5 +1,5 @@
 ## Interface: 11200
-## Title: |cff9400D3Lyth |cffffffffRP_|cffffffffAux
+## Title: |cff9400D3Lyth |cffffffffAux
 ## Author: shirsig, Lythandra
 ## OptionalDeps: ShaguTweaks
 ## Notes: Auction House replacement
