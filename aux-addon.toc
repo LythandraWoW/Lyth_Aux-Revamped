@@ -2,7 +2,6 @@
 ## Title: |cff9400D3Lyth |cffffffffRP_|cffffffffAux
 ## Author: shirsig, Lythandra
 ## OptionalDeps: ShaguTweaks
-## Title: aux
 ## Notes: Auction House replacement
 ## SavedVariables: aux
 
